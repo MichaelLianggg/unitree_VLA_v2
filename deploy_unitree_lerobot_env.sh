@@ -71,6 +71,9 @@ pip install -e "${LEROBOT_SRC}"
 echo "Installing unitree_lerobot (editable)..."
 pip install -e "${UNITREE_LEROBOT_PKG}"
 
+echo "Installing transformers..."
+pip install "transformers>=4.41.0,<5.0.0" 
+
 POST="${UNITREE_LEROBOT_PKG}/scripts/DEPLOY_NOTES.txt"
 cat > "${POST}" <<EOF
 Generated: $(date -Iseconds)
