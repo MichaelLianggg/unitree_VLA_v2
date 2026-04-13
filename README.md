@@ -2,8 +2,6 @@
 
 ## 1. Run the deploy script
 
-From the **unitree_lerobot repo root** (where `pyproject.toml` is):
-
 ```bash
 chmod +x deploy_unitree_lerobot_env.sh
 ./deploy_unitree_lerobot_env.sh
@@ -16,15 +14,13 @@ conda activate unitree_lerobot
 ```bash
 cd unitree_lerobot/lerobot/src/lerobot/scripts
 python lerobot_train.py \
-  --dataset.repo_id=<your_dataset> \
+  --dataset.repo_id=unitreerobotics/G1_Dex1_PickPlaceRedBlock_Dataset_Sim \
   --policy.type=pi05 \
   --policy.pretrained_path=lerobot/pi05_base \
   --output_dir=./outputs/run1
 ```
 
 ## 3. Train on multi-GPU
-
-LeRobot uses **Hugging Face Accelerate**. Effective batch size = **`batch_size` × number of processes** (one process per GPU).
 
 **Launch:**
 

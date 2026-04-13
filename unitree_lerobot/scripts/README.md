@@ -2,12 +2,19 @@
 
 ## 1. Run the deploy script
 
-From the **unitree_lerobot repo root** (where `pyproject.toml` is):
+From the **repository root** (parent of `unitree_lerobot/`; the deploy script sits next to `README.md`):
 
 ```bash
 chmod +x deploy_unitree_lerobot_env.sh
 ./deploy_unitree_lerobot_env.sh
 conda activate unitree_lerobot
+```
+
+If your shell is already under `unitree_lerobot/scripts/`, run:
+
+```bash
+chmod +x ../../deploy_unitree_lerobot_env.sh
+../../deploy_unitree_lerobot_env.sh
 ```
 
 

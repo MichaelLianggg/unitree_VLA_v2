@@ -2,9 +2,9 @@
 # =============================================================================
 # Unitree LeRobot — fresh machine setup for training (LeRobot + unitree_lerobot)
 #
-# Usage:
-#   chmod +x scripts/deploy_unitree_lerobot_env.sh
-#   ./scripts/deploy_unitree_lerobot_env.sh
+# Usage (from this repository root, next to unitree_lerobot/):
+#   chmod +x deploy_unitree_lerobot_env.sh
+#   ./deploy_unitree_lerobot_env.sh
 #
 # Optional environment variables:
 #   CONDA_ENV_NAME    default: unitree_lerobot
@@ -19,8 +19,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-LEROBOT_SRC="${REPO_ROOT}/unitree_lerobot/lerobot"
+# Script lives at repository root (Unitree_VLA), not under scripts/.
+REPO_ROOT="${SCRIPT_DIR}"
+UNITREE_LEROBOT_PKG="${REPO_ROOT}/unitree_lerobot"
+LEROBOT_SRC="${UNITREE_LEROBOT_PKG}/unitree_lerobot/lerobot"
 
 CONDA_ENV_NAME="${CONDA_ENV_NAME:-unitree_lerobot}"
 PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
@@ -29,8 +31,8 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 
 command -v conda >/dev/null 2>&1 || die "conda not found. Install Miniconda, Miniforge, or Mambaforge first."
 
-[[ -f "${LEROBOT_SRC}/pyproject.toml" ]] || die "LeRobot source not found: ${LEROBOT_SRC} (run this script from the unitree_lerobot repo root)"
-[[ -f "${REPO_ROOT}/pyproject.toml" ]] || die "unitree_lerobot pyproject.toml not found: ${REPO_ROOT}"
+[[ -f "${LEROBOT_SRC}/pyproject.toml" ]] || die "LeRobot source not found: ${LEROBOT_SRC} (run this script from the repository root)"
+[[ -f "${UNITREE_LEROBOT_PKG}/pyproject.toml" ]] || die "unitree_lerobot pyproject.toml not found: ${UNITREE_LEROBOT_PKG}"
 
 echo "=========================================="
 echo " Unitree LeRobot environment (training)"
@@ -67,9 +69,9 @@ echo "Installing LeRobot (editable)..."
 pip install -e "${LEROBOT_SRC}"
 
 echo "Installing unitree_lerobot (editable)..."
-pip install -e "${REPO_ROOT}"
+pip install -e "${UNITREE_LEROBOT_PKG}"
 
-POST="${REPO_ROOT}/scripts/DEPLOY_NOTES.txt"
+POST="${UNITREE_LEROBOT_PKG}/scripts/DEPLOY_NOTES.txt"
 cat > "${POST}" <<EOF
 Generated: $(date -Iseconds)
 Conda env: ${CONDA_ENV_NAME}
