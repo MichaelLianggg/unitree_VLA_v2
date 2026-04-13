@@ -1,21 +1,4 @@
-#!/usr/bin/env bash
-# =============================================================================
-# Unitree LeRobot — fresh machine setup for training (LeRobot + unitree_lerobot)
-#
-# Usage (from this repository root, next to unitree_lerobot/):
-#   chmod +x deploy_unitree_lerobot_env.sh
-#   ./deploy_unitree_lerobot_env.sh
-#
-# Optional environment variables:
-#   CONDA_ENV_NAME    default: unitree_lerobot
-#   PYTHON_VERSION    default: 3.10
-#   PYTORCH_INDEX_URL e.g. https://download.pytorch.org/whl/cu124 (match your CUDA)
-#
-# Notes:
-#   - Does not install unitree_sdk2_python (install separately for robot/DDS/sim).
-#   - Install Isaac Sim per official docs if you need simulation.
-#   - Requires conda or mamba (Miniforge recommended).
-# =============================================================================
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
