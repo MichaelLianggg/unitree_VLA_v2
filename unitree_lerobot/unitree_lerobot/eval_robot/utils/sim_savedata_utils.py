@@ -190,6 +190,8 @@ class EvalRealConfig:
     save_data: bool = False
     task_dir: str = "./data"
     max_episodes: int = 1200
+    # None: omit cam_right_high in sim (3-camera layout, matches G1_DEX1_CONFIG_SIM); include it on real robot.
+    include_right_high: bool | None = None
     rename_map: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):

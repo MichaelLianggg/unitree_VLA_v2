@@ -127,6 +127,14 @@ def eval_policy(
         print(f"user_input: {user_input}")
         full_state = None
 
+        include_right_high = cfg.include_right_high
+        if include_right_high is None:
+            include_right_high = not cfg.sim
+        logger_mp.info(
+            f"Camera layout: include_right_high={include_right_high} "
+            f"(sim dataset is typically 3 views without cam_right_high; set --include_right_high true to duplicate mono head)"
+        )
+
         reward_stats = {
             "reward_sum": 0.0,
             "episode_num": 0.0,
@@ -137,6 +145,17 @@ def eval_policy(
             logger_mp.info("Initializing robot to starting pose...")
             tau = robot_interface["arm_ik"].solve_tau(init_arm_pose)
             robot_interface["arm_ctrl"].ctrl_dual_arm(init_arm_pose, tau)
+            # Match dataset gripper dims (14 arm was set above; state is arm + left ee + right ee).
+            if cfg.ee and ee_dof > 0:
+                init_full = step["observation.state"].cpu().numpy()
+                left0 = init_full[arm_dof : arm_dof + ee_dof]
+                right0 = init_full[arm_dof + ee_dof : arm_dof + 2 * ee_dof]
+                if isinstance(ee_shared_mem["left"], SynchronizedArray):
+                    ee_shared_mem["left"][:] = left0.tolist()
+                    ee_shared_mem["right"][:] = right0.tolist()
+                elif hasattr(ee_shared_mem["left"], "value") and hasattr(ee_shared_mem["right"], "value"):
+                    ee_shared_mem["left"].value = float(left0[0])
+                    ee_shared_mem["right"].value = float(right0[0])
             time.sleep(1.0)  # Give time for the robot to move
 
             # --- Run Main Loop ---
@@ -149,7 +168,14 @@ def eval_policy(
 
                 # 1. Get Observations
                 observation, current_arm_q = process_images_and_observations(
-                    tv_img_array, wrist_img_array, tv_img_shape, wrist_img_shape, is_binocular, has_wrist_cam, arm_ctrl
+                    tv_img_array,
+                    wrist_img_array,
+                    tv_img_shape,
+                    wrist_img_shape,
+                    is_binocular,
+                    has_wrist_cam,
+                    arm_ctrl,
+                    include_right_high=include_right_high,
                 )
                 left_ee_state = right_ee_state = np.array([])
                 if cfg.ee:
@@ -169,7 +195,7 @@ def eval_policy(
                     preprocessor,
                     postprocessor,
                     policy.config.use_amp,
-                    "Pick up the red cup on the table.",
+                    "Pick up the red wooden block on the table and place it on the yellow box.",
                     use_dataset=cfg.use_dataset,
                     robot_type=None,
                 )

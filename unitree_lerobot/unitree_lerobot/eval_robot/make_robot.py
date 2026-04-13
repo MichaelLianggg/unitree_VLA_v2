@@ -246,26 +246,46 @@ def setup_robot_interface(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def process_images_and_observations(
-    tv_img_array, wrist_img_array, tv_img_shape, wrist_img_shape, is_binocular, has_wrist_cam, arm_ctrl
+    tv_img_array,
+    wrist_img_array,
+    tv_img_shape,
+    wrist_img_shape,
+    is_binocular,
+    has_wrist_cam,
+    arm_ctrl,
+    include_right_high: bool = True,
 ):
-    """Processes images and generates observations."""
+    """Processes images and generates observations.
+
+    G1_Dex1 sim data (see unitree_lerobot.utils.constants.G1_DEX1_CONFIG_SIM) uses three views:
+    cam_left_high, cam_left_wrist, cam_right_wrist — no cam_right_high. For PI05, omitting the key
+    matches training (missing view is mask-padded). Duplicating the mono head into cam_right_high
+    can shift the visual distribution vs that training setup.
+
+    When include_right_high is True and the head is mono (not binocular), left is duplicated into
+    cam_right_high so policies that expect four fixed camera slots still receive valid pixels.
+    """
     # Convert from BGR (OpenCV default) to RGB for HuggingFace/LeRobot models
     current_tv_image = tv_img_array.copy()[..., ::-1].copy()
     current_wrist_image = wrist_img_array.copy()[..., ::-1].copy() if has_wrist_cam else None
 
     left_top_cam = current_tv_image[:, : tv_img_shape[1] // 2] if is_binocular else current_tv_image
-    right_top_cam = current_tv_image[:, tv_img_shape[1] // 2 :] if is_binocular else None
+    if include_right_high:
+        right_top_cam = (
+            current_tv_image[:, tv_img_shape[1] // 2 :] if is_binocular else np.ascontiguousarray(left_top_cam)
+        )
 
     left_wrist_cam = right_wrist_cam = None
     if has_wrist_cam and current_wrist_image is not None:
         left_wrist_cam = current_wrist_image[:, : wrist_img_shape[1] // 2]
         right_wrist_cam = current_wrist_image[:, wrist_img_shape[1] // 2 :]
-    observation = {
+    observation: dict[str, Any] = {
         "observation.images.cam_left_high": torch.from_numpy(left_top_cam),
-        "observation.images.cam_right_high": torch.from_numpy(right_top_cam) if is_binocular else None,
         "observation.images.cam_left_wrist": torch.from_numpy(left_wrist_cam) if has_wrist_cam else None,
         "observation.images.cam_right_wrist": torch.from_numpy(right_wrist_cam) if has_wrist_cam else None,
     }
+    if include_right_high:
+        observation["observation.images.cam_right_high"] = torch.from_numpy(right_top_cam)
     current_arm_q = arm_ctrl.get_current_dual_arm_q()
 
     return observation, current_arm_q
